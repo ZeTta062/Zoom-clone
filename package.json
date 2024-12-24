@@ -2,7 +2,7 @@
   "name": "zoom",
   "version": "1.0.0",
   "license": "MIT",
-  "description": "Zoom Clone using web RTC and Websokets",
+  "description": "Zoom Clone using web RTC and Websockets",
   "scripts": {
     "dev": "nodemon"
   },
