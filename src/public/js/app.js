@@ -8,6 +8,8 @@ room.hidden = true;
 
 let roomName;
 
+
+
  function addMessage(message) {
     const ul = room.querySelector("ul");
     const li = document.createElement("li");
@@ -21,16 +23,24 @@ function showRoom() {
     const h3 = room.querySelector("h3");
     h3.innerText = `Room ${roomName}`;
 
-    const form = room.querySelector("form")
-    form.addEventListener("submit", (event) => {
+    const nameForm = room.querySelector("#name")
+    const msgForm = room.querySelector("#message")
+    
+    msgForm.addEventListener("submit", (event) => {           // message
         event.preventDefault();
-        const input = room.querySelector("input");
+        const input = room.querySelector("#message input");
         const value = input.value;
         frontSocket.emit("new_message", input.value, roomName, () => {
             addMessage(`You: ${value}`);
         });
         input.value = "";
-    })
+    });
+
+    nameForm.addEventListener("submit", (event) => {        //nickname
+        event.preventDefault();
+        const input = room.querySelector("#name input");
+        frontSocket.emit("nickname", input.value);
+    });
 }
 
 form.addEventListener("submit", (event) => {
@@ -41,12 +51,12 @@ form.addEventListener("submit", (event) => {
     input.value = "";
 });
 
- frontSocket.on("welcome", () => {
-    addMessage("누군가 들어왔습니다.");
+ frontSocket.on("welcome", (user) => {
+    addMessage(`${user} 님이 들어왔습니다.`);
 }) 
 
-frontSocket.on("bye", () => {
-    addMessage("누군가 나갔습니다.");
+frontSocket.on("bye", (left) => {
+    addMessage(`${left} 님이 나갔습니다.`);
 }) 
 
 frontSocket.on("new_message", addMessage);

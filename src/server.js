@@ -15,6 +15,7 @@ const httpServer = http.createServer(app);          //express
 const wsServer = SocketIO(httpServer);              //SocketIO server
 
 wsServer.on("connection", (BackSocket) => {
+    BackSocket["nickname"] = "Anonymous";
     BackSocket.onAny((event) => {
         console.log(`Socket Event:${event}`);
     });
@@ -22,15 +23,16 @@ wsServer.on("connection", (BackSocket) => {
         // front에 있는 emit에 적은 function을 back에서 제어 할 수 있다
         BackSocket.join(roomName);
         done();
-        BackSocket.to(roomName).emit("welcome");
+        BackSocket.to(roomName).emit("welcome", BackSocket.nickname);
     });
     BackSocket.on("disconnecting", () => {
-        BackSocket.rooms.forEach((room) => BackSocket.to(room).emit("bye"));
+        BackSocket.rooms.forEach((room) => BackSocket.to(room).emit("bye", BackSocket.nickname));
     });
     BackSocket.on("new_message", (msg, room, done) => {
-        BackSocket.to(room).emit("new_message", msg);
+        BackSocket.to(room).emit("new_message", `${BackSocket.nickname}: ${msg}`);
         done();
     })
+    BackSocket.on("nickname", (nickname) => (BackSocket["nickname"] = nickname));
 });
 
 const handleListen = () => console.log('Listening on http://localhost:3000');
