@@ -8,11 +8,29 @@ room.hidden = true;
 
 let roomName;
 
+ function addMessage(message) {
+    const ul = room.querySelector("ul");
+    const li = document.createElement("li");
+    li.innerText = message;
+    ul.appendChild(li);
+} 
+
 function showRoom() {
     welcome.hidden = true;
     room.hidden = false;
     const h3 = room.querySelector("h3");
-    h3.innerText = `Room ${roomName}`
+    h3.innerText = `Room ${roomName}`;
+
+    const form = room.querySelector("form")
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const input = room.querySelector("input");
+        const value = input.value;
+        frontSocket.emit("new_message", input.value, roomName, () => {
+            addMessage(`You: ${value}`);
+        });
+        input.value = "";
+    })
 }
 
 form.addEventListener("submit", (event) => {
@@ -22,3 +40,13 @@ form.addEventListener("submit", (event) => {
     roomName = input.value;
     input.value = "";
 });
+
+ frontSocket.on("welcome", () => {
+    addMessage("누군가 들어왔습니다.");
+}) 
+
+frontSocket.on("bye", () => {
+    addMessage("누군가 나갔습니다.");
+}) 
+
+frontSocket.on("new_message", addMessage);

@@ -22,7 +22,15 @@ wsServer.on("connection", (BackSocket) => {
         // front에 있는 emit에 적은 function을 back에서 제어 할 수 있다
         BackSocket.join(roomName);
         done();
+        BackSocket.to(roomName).emit("welcome");
     });
+    BackSocket.on("disconnecting", () => {
+        BackSocket.rooms.forEach((room) => BackSocket.to(room).emit("bye"));
+    });
+    BackSocket.on("new_message", (msg, room, done) => {
+        BackSocket.to(room).emit("new_message", msg);
+        done();
+    })
 });
 
 const handleListen = () => console.log('Listening on http://localhost:3000');
