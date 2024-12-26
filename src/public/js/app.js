@@ -1,14 +1,13 @@
 const frontSocket = io();
 
 const welcome = document.getElementById("welcome");
-const form = welcome.querySelector("form");
+const nameForm = welcome.querySelector("#name")
+const greeting = welcome.querySelector("#greeting");
 const room = document.getElementById("room"); 
 
 room.hidden = true;
 
 let roomName;
-
-
 
  function addMessage(message) {
     const ul = room.querySelector("ul");
@@ -23,9 +22,7 @@ function showRoom() {
     const h3 = room.querySelector("h3");
     h3.innerText = `Room ${roomName}`;
 
-    const nameForm = room.querySelector("#name")
-    const msgForm = room.querySelector("#message")
-    
+    const msgForm = room.querySelector("#message") 
     msgForm.addEventListener("submit", (event) => {           // message
         event.preventDefault();
         const input = room.querySelector("#message input");
@@ -35,17 +32,18 @@ function showRoom() {
         });
         input.value = "";
     });
-
-    nameForm.addEventListener("submit", (event) => {        //nickname
-        event.preventDefault();
-        const input = room.querySelector("#name input");
-        frontSocket.emit("nickname", input.value);
-    });
 }
 
-form.addEventListener("submit", (event) => {
+nameForm.addEventListener("submit", (event) => {        //nickname
     event.preventDefault();
-    const input = form.querySelector("input");
+    const input = document.querySelector("#name input");
+    frontSocket.emit("nickname", input.value);
+});
+
+greeting.addEventListener("submit", (event) => {
+    event.preventDefault();
+    // const greeting = document.querySelector("#greeting");
+    const input = greeting.querySelector("input");
     frontSocket.emit("enter_room", input.value, showRoom);
     roomName = input.value;
     input.value = "";
@@ -55,8 +53,8 @@ form.addEventListener("submit", (event) => {
     addMessage(`${user} 님이 들어왔습니다.`);
 }) 
 
-frontSocket.on("bye", (left) => {
-    addMessage(`${left} 님이 나갔습니다.`);
+frontSocket.on("bye", (user) => {
+    addMessage(`${user} 님이 나갔습니다.`);
 }) 
 
 frontSocket.on("new_message", addMessage);
