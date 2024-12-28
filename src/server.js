@@ -31,6 +31,7 @@ function publicRooms() {
 
 wsServer.on("connection", (BackSocket) => {
     BackSocket["nickname"] = "Anonymous";
+    wsServer.sockets.emit("room_change", publicRooms());    // 서버에 들어오면 바로 룸을 알 수 있음
     BackSocket.onAny((event) => {
         console.log(wsServer.sockets.adapter);
         console.log(`Socket Event:${event}`);
@@ -40,7 +41,7 @@ wsServer.on("connection", (BackSocket) => {
         BackSocket.join(roomName);
         done();
         BackSocket.to(roomName).emit("welcome", BackSocket.nickname);
-        wsServer.sockets.emit("room_change", publicRooms());
+        
     });
     BackSocket.on("disconnecting", () => {
         BackSocket.rooms.forEach((room) => BackSocket.to(room).emit("bye", BackSocket.nickname));
