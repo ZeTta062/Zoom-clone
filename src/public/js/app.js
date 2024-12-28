@@ -1,40 +1,73 @@
-const messageList = document.querySelector("ul");
-const idForm = document.querySelector("#ID");
-const messageForm = document.querySelector("#message");
+const frontSocket = io();
 
-const FrontSocket = new WebSocket(`ws://${window.location.host}`);
+const welcome = document.getElementById("welcome");
+const nameForm = welcome.querySelector("#name")
+const greeting = welcome.querySelector("#greeting");
+const room = document.getElementById("room"); 
 
-function makeMessage(type, payload) {       // element > string
-    const msg = {type, payload};
-    return JSON.stringify(msg);
+room.hidden = true;
+
+let roomName;
+
+ function addMessage(message) {
+    const ul = room.querySelector("ul");
+    const li = document.createElement("li");
+    li.innerText = message;
+    ul.appendChild(li);
+} 
+
+function showRoom() {
+    welcome.hidden = true;
+    room.hidden = false;
+    const h3 = room.querySelector("h3");
+    h3.innerText = `Room ${roomName}`;
+
+    const msgForm = room.querySelector("#message") 
+    msgForm.addEventListener("submit", (event) => {           // message
+        event.preventDefault();
+        const input = room.querySelector("#message input");
+        const value = input.value;
+        frontSocket.emit("new_message", input.value, roomName, () => {
+            addMessage(`You: ${value}`);
+        });
+        input.value = "";
+    });
 }
 
-
-FrontSocket.addEventListener("open", () => {
-    console.log("Connected to Server ✅");
-} );
-
-FrontSocket.addEventListener("message", (message) => {
-    const li = document.createElement("li");
-    li.innerText = message.data;
-    messageList.append(li);
-    // console.log("New message: ", message.data);
+nameForm.addEventListener("submit", (event) => {        //nickname
+    event.preventDefault();
+    const input = document.querySelector("#name input");
+    frontSocket.emit("nickname", input.value);
 });
 
-FrontSocket.addEventListener("close", () => {
-    console.log("Disconnected to Server ❌");
+greeting.addEventListener("submit", (event) => {
+    event.preventDefault();
+    // const greeting = document.querySelector("#greeting");
+    const input = greeting.querySelector("input");
+    frontSocket.emit("enter_room", input.value, showRoom);
+    roomName = input.value;
+    input.value = "";
 });
 
-messageForm.addEventListener("submit", (e) => {     // 메시지
-    e.preventDefault();
-    const input = messageForm.querySelector("input");
-    FrontSocket.send(makeMessage("new_message",input.value));      // 프런트 > 백엔드
-    input.value = "";
-})
+ frontSocket.on("welcome", (user) => {
+    addMessage(`${user} 님이 들어왔습니다.`);
+}) 
 
-idForm.addEventListener("submit", (e) => {              // ID
-    e.preventDefault();
-    const input = idForm.querySelector("input");
-    FrontSocket.send(makeMessage("nickname",input.value));
-    input.value = "";
-})
+frontSocket.on("bye", (user) => {
+    addMessage(`${user} 님이 나갔습니다.`);
+}) 
+
+frontSocket.on("new_message", addMessage);
+
+frontSocket.on("room_change", (rooms) => {
+    const roomList = welcome.querySelector("ul");
+    roomList.innerHTML = "";
+    if(rooms.length === 0) {
+        return;
+    }
+    rooms.forEach(room => {
+        const li = document.createElement("li");
+        li.innerText = room;
+        roomList.append(li);
+    });
+});
