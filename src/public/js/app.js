@@ -16,11 +16,11 @@ let roomName;
     ul.appendChild(li);
 } 
 
-function showRoom() {
+function showRoom(newCount) {
     welcome.hidden = true;
     room.hidden = false;
     const h3 = room.querySelector("h3");
-    h3.innerText = `Room ${roomName}`;
+    h3.innerText = `Room ${roomName} | 👥 온라인 - ${newCount}`;
 
     const msgForm = room.querySelector("#message") 
     msgForm.addEventListener("submit", (event) => {           // message
@@ -51,13 +51,13 @@ greeting.addEventListener("submit", (event) => {
 
  frontSocket.on("welcome", (user, newCount) => {
     const h3 = room.querySelector("h3");
-    h3.innerText = `Room ${roomName} | 👥(${newCount})`;
+    h3.innerText = `Room ${roomName} | 👥 온라인 - ${newCount}`;
     addMessage(`${user} 님이 들어왔습니다.`);
 }) 
 
 frontSocket.on("bye", (user, newCount) => {
     const h3 = room.querySelector("h3");
-    h3.innerText = `Room ${roomName} | 👥(${newCount})`;
+    h3.innerText = `Room ${roomName} | 👥 온라인 - ${newCount}`;
     addMessage(`${user} 님이 나갔습니다.`);
 }) 
 

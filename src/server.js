@@ -1,6 +1,7 @@
 import http from "http";
 import express from "express";
-import SocketIO from "socket.io";
+import { Server } from "socket.io";
+import { instrument } from "@socket.io/admin-ui";
 
 const app = express();
 
@@ -12,7 +13,16 @@ app.get("/*", (req, res) => res.redirect("/")); //CATCHALL URL
 
 
 const httpServer = http.createServer(app);          //express
-const wsServer = SocketIO(httpServer);              //SocketIO server
+
+const wsServer = new Server(httpServer, {           //SocketIO server
+  cors: {
+    origin: ["https://admin.socket.io"],
+    credentials: true,
+  },
+});
+instrument(wsServer, {
+  auth: false,
+});
 
 function publicRooms() {
     const {
@@ -43,8 +53,8 @@ wsServer.on("connection", (BackSocket) => {                 // 서버가 켜졌�
     BackSocket.on("enter_room", (roomName, done) => {
         // front에 있는 emit에 적은 function을 back에서 제어 할 수 있다
         BackSocket.join(roomName);
-        done();
-        BackSocket.to(roomName).emit("welcome", BackSocket.nickname, countRoom(roomName));    
+        done(countRoom(roomName));
+        wsServer.to(roomName).emit("welcome", BackSocket.nickname, countRoom(roomName));  
     });
     BackSocket.on("disconnecting", () => {
         BackSocket.rooms.forEach((room) => 

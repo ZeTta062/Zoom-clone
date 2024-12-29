@@ -18,4 +18,4 @@ Zoom Clone using NodeJS, WebRTC and Websockets.
 - nodemon
 - express
 - pug
-- ws
+- ws / socket.io
