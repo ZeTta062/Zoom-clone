@@ -49,11 +49,15 @@ greeting.addEventListener("submit", (event) => {
     input.value = "";
 });
 
- frontSocket.on("welcome", (user) => {
+ frontSocket.on("welcome", (user, newCount) => {
+    const h3 = room.querySelector("h3");
+    h3.innerText = `Room ${roomName} | 👥(${newCount})`;
     addMessage(`${user} 님이 들어왔습니다.`);
 }) 
 
-frontSocket.on("bye", (user) => {
+frontSocket.on("bye", (user, newCount) => {
+    const h3 = room.querySelector("h3");
+    h3.innerText = `Room ${roomName} | 👥(${newCount})`;
     addMessage(`${user} 님이 나갔습니다.`);
 }) 
 

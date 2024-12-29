@@ -17,7 +17,7 @@ const wsServer = SocketIO(httpServer);              //SocketIO server
 function publicRooms() {
     const {
       sockets: {
-        adapter: { sids, rooms },
+        adapter: { sids, rooms }
       },
     } = wsServer;
     const publicRooms = [];
@@ -29,7 +29,11 @@ function publicRooms() {
     return publicRooms;
   }
 
-wsServer.on("connection", (BackSocket) => {
+function countRoom(roomName) {
+  return wsServer.sockets.adapter.rooms.get(roomName)?.size;
+}
+
+wsServer.on("connection", (BackSocket) => {                 // 서버가 켜졌을 때
     BackSocket["nickname"] = "Anonymous";
     wsServer.sockets.emit("room_change", publicRooms());    // 서버에 들어오면 바로 룸을 알 수 있음
     BackSocket.onAny((event) => {
@@ -40,11 +44,12 @@ wsServer.on("connection", (BackSocket) => {
         // front에 있는 emit에 적은 function을 back에서 제어 할 수 있다
         BackSocket.join(roomName);
         done();
-        BackSocket.to(roomName).emit("welcome", BackSocket.nickname);
-        
+        BackSocket.to(roomName).emit("welcome", BackSocket.nickname, countRoom(roomName));    
     });
     BackSocket.on("disconnecting", () => {
-        BackSocket.rooms.forEach((room) => BackSocket.to(room).emit("bye", BackSocket.nickname));
+        BackSocket.rooms.forEach((room) => 
+          BackSocket.to(room).emit("bye", BackSocket.nickname, countRoom(room) -1)
+      );
     });
     BackSocket.on("disconnect", () => {
       wsServer.sockets.emit("room_change", publicRooms());
